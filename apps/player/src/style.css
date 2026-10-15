@@ -1,0 +1,220 @@
+:root {
+  --ink: #0b0d12;
+  --fg: #f4f6fa;
+  --muted: #b3bacb;
+  --gold: #e8b86d;
+  --ember: #f08a5d;
+  --fade: 1400ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: var(--fg);
+  font-family:
+    'Plus Jakarta Sans Variable',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  overflow: hidden;
+  cursor: default;
+}
+body.idle-cursor {
+  cursor: none;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  background: #000;
+}
+
+/* ---- photo layers: opacity-only crossfade (cheap on signage-class hardware) ---- */
+.layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--fade) ease;
+  will-change: opacity;
+  background: var(--ink);
+}
+.layer.on {
+  opacity: 1;
+}
+
+/* Blurred, darkened copy fills the screen so portrait selfies never leave black bars. */
+.layer .bg {
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  filter: blur(46px) brightness(0.45) saturate(1.1);
+}
+.layer .fg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 50%;
+}
+/* Very slow drift also helps against burn-in. */
+@keyframes drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.045);
+  }
+}
+.layer.on .fg {
+  animation: drift var(--dur, 10s) linear forwards;
+}
+
+.layer::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 38%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent);
+  pointer-events: none;
+}
+
+/* ---- caption: kept inside a 5% safe area, readable from across the room ---- */
+.caption {
+  position: absolute;
+  z-index: 2;
+  bottom: 6vh;
+  left: 5vw;
+  right: 5vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2vh;
+  align-items: flex-start;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.65);
+}
+.caption.right {
+  align-items: flex-end;
+  text-align: right;
+}
+.caption .name {
+  margin: 0;
+  font-size: 5vh;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.caption .date {
+  margin: 0;
+  font-size: 2.6vh;
+  color: var(--muted);
+  font-weight: 500;
+}
+.badge {
+  align-self: inherit;
+  font-size: 2.4vh;
+  font-weight: 700;
+  color: var(--ink);
+  background: linear-gradient(90deg, var(--gold), var(--ember));
+  padding: 0.7vh 1.8vh;
+  border-radius: 999px;
+  text-shadow: none;
+}
+.badge[hidden],
+.date[hidden] {
+  display: none;
+}
+
+/* ---- idle: paused, nothing to show yet, or quiet hours ---- */
+#idle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 10vh 10vw;
+  opacity: 0;
+  transition: opacity var(--fade) ease;
+  background: radial-gradient(120% 90% at 50% 40%, #151a26 0%, var(--ink) 70%);
+}
+#stage[data-mode='empty'] #idle,
+#stage[data-mode='paused'] #idle {
+  opacity: 1;
+}
+#stage[data-mode='quiet'] #idle {
+  opacity: 0;
+}
+#idle p {
+  margin: 0;
+  font-size: 7vh;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+  max-width: 22ch;
+  text-wrap: balance;
+  animation: float 90s ease-in-out infinite alternate;
+}
+@keyframes float {
+  from {
+    transform: translate(-2vw, -1.5vh);
+  }
+  to {
+    transform: translate(2vw, 1.5vh);
+  }
+}
+
+#stage[data-mode='paused'] .layer,
+#stage[data-mode='empty'] .layer,
+#stage[data-mode='quiet'] .layer {
+  opacity: 0;
+}
+
+/* ---- status dot: only visible when the server cannot be reached ---- */
+#dot {
+  position: fixed;
+  right: 2.2vw;
+  top: 3vh;
+  width: 1.3vh;
+  height: 1.3vh;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  background: #e0a13a;
+  opacity: 0.55;
+}
+#dot[hidden] {
+  display: none;
+}
+
+#hint {
+  position: fixed;
+  left: 50%;
+  bottom: 3vh;
+  transform: translateX(-50%);
+  font-size: 1.8vh;
+  color: var(--muted);
+  background: rgba(20, 24, 33, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1vh 2vh;
+  border-radius: 999px;
+  transition: opacity 600ms ease;
+  z-index: 5;
+}
+#hint.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer.on .fg,
+  #idle p {
+    animation: none;
+  }
+}

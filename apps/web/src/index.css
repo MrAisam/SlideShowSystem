@@ -1,0 +1,120 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans:
+    'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-ink: #0b0d12;
+  --color-surface: #141821;
+  --color-fg: #f4f6fa;
+  --color-muted: #8b93a7;
+  --color-gold: #e8b86d;
+  --color-ember: #f08a5d;
+  --color-danger: #f28b8b;
+  --radius-card: 20px;
+  --radius-control: 16px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Step entrance: short and eased, only when the person moves between steps. */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.step-in {
+  animation: step-in 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes shutter {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.shutter {
+  animation: shutter 220ms ease-out both;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.draw-check {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: draw 320ms 160ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+/* The success screen is the one memorable moment: the screen "switches on". */
+@keyframes tv-on {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.04);
+  }
+  55% {
+    opacity: 1;
+    transform: scaleY(0.04) scaleX(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tv-on {
+  transform-origin: center;
+  animation: tv-on 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Printing the entrance QR code: only the code card is printed. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #qr-print,
+  #qr-print * {
+    visibility: visible;
+  }
+  #qr-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none;
+  }
+}
